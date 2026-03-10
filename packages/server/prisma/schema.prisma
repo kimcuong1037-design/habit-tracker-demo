@@ -1,0 +1,106 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ──────────────────────────────────
+// User（v1 预留，单用户模式）
+// ──────────────────────────────────
+model User {
+  id        String   @id @default(uuid())
+  email     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  habits Habit[]
+}
+
+// ──────────────────────────────────
+// Habit（习惯）
+// ──────────────────────────────────
+model Habit {
+  id             String  @id @default(uuid())
+  userId         String
+  name           String
+  description    String?
+  startDate      String
+  frequency      String  @default("daily")
+  cueType        String
+  cueValue       String
+  stackedHabitId String?
+  isActive       Boolean @default(true)
+  sortOrder      Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user            User              @relation(fields: [userId], references: [id])
+  stackedHabit    Habit?            @relation("HabitStacking", fields: [stackedHabitId], references: [id])
+  stackedByHabits Habit[]           @relation("HabitStacking")
+  checkIns        CheckIn[]
+  milestoneEvents MilestoneEvent[]
+  streakBreaks    StreakBreakEvent[]
+
+  @@index([userId, isActive])
+  @@index([stackedHabitId])
+}
+
+// ──────────────────────────────────
+// CheckIn（打卡记录）
+// ──────────────────────────────────
+model CheckIn {
+  id            String  @id @default(uuid())
+  habitId       String
+  date          String
+  isRetroactive Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  habit Habit @relation(fields: [habitId], references: [id], onDelete: Cascade)
+
+  @@unique([habitId, date])
+  @@index([habitId])
+  @@index([date])
+}
+
+// ──────────────────────────────────
+// MilestoneEvent（里程碑事件）
+// ──────────────────────────────────
+model MilestoneEvent {
+  id             String  @id @default(uuid())
+  habitId        String
+  type           String
+  totalDays      Int
+  completionRate Float
+  longestStreak  Int
+  dismissed      Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  habit Habit @relation(fields: [habitId], references: [id], onDelete: Cascade)
+
+  @@unique([habitId, type])
+  @@index([habitId])
+}
+
+// ──────────────────────────────────
+// StreakBreakEvent（连续断裂安慰记录）
+// ──────────────────────────────────
+model StreakBreakEvent {
+  id           String  @id @default(uuid())
+  habitId      String
+  breakDate    String
+  comfortShown Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  habit Habit @relation(fields: [habitId], references: [id], onDelete: Cascade)
+
+  @@unique([habitId, breakDate])
+  @@index([habitId])
+}

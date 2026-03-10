@@ -22,11 +22,13 @@
 - [x] 完成技术架构文档 (tech-architecture.md)
 - [x] 建立设计决策记录 (design-decisions.md)
 
-### Phase 1: 项目初始化
-- [ ] 初始化前端项目
-- [ ] 初始化后端项目
-- [ ] 配置开发工具（ESLint, Prettier, etc.）
-- [ ] 搭建数据库 schema
+### Phase 1: 项目初始化 ✅
+- [x] 初始化前端项目
+- [x] 初始化后端项目
+- [x] 配置开发工具（ESLint, Prettier, etc.）
+- [x] 搭建数据库 schema
+- [x] 搭建后端骨架（routes + services + app 路由注册）
+- [x] 搭建前端骨架（API 客户端 + hooks + 组件结构 + Layout）
 
 ### Phase 2: 核心功能开发
 - [ ] 功能 1: 创建习惯（CRUD - Create）

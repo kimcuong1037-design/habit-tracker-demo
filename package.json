@@ -1,0 +1,21 @@
+{
+  "name": "habit-tracker-demo",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --parallel --filter @habit-tracker/client --filter @habit-tracker/server dev",
+    "build": "pnpm --filter @habit-tracker/shared build && pnpm --parallel --filter @habit-tracker/client --filter @habit-tracker/server build",
+    "lint": "eslint packages/",
+    "format": "prettier --write \"packages/*/src/**/*.{ts,tsx}\""
+  },
+  "type": "module",
+  "pnpm": {
+    "onlyBuiltDependencies": ["@prisma/client", "@prisma/engines", "esbuild", "prisma"]
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "eslint": "^9.0.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.0.0"
+  }
+}
