@@ -10,12 +10,17 @@
 
 ## 开发阶段
 
-### Phase 0: 需求与设计（当前阶段）
+### Phase 0: 需求与设计 ✅
 - [x] 收集原始需求文档
 - [x] 收集科学参考资料
 - [x] 完成产品需求文档 (PRD)
 - [x] 完成 UI/UX 设计文档（user-stories + user-flows + wireframes）
 - [x] 确定技术栈
+- [x] 完成开发约定 (conventions.md)
+- [x] 完成数据库设计 (database-design.md)
+- [x] 完成 API 设计 (api-design.md)
+- [x] 完成技术架构文档 (tech-architecture.md)
+- [x] 建立设计决策记录 (design-decisions.md)
 
 ### Phase 1: 项目初始化
 - [ ] 初始化前端项目
@@ -57,6 +62,8 @@
 | User Stories | `docs/product/user-stories.md` | ✅ 完成 |
 | 用户交互流程 | `docs/design/user-flows.md` | ✅ 完成 |
 | 页面线框图 | `docs/design/wireframes.md` | ✅ 完成 |
-| 技术架构文档 | `docs/architecture/tech-architecture.md` | ⏳ 待完成 |
-| API 设计文档 | `docs/architecture/api-design.md` | ⏳ 待完成 |
-| 数据库设计文档 | `docs/architecture/database-design.md` | ⏳ 待完成 |
+| 开发约定 | `docs/architecture/conventions.md` | ✅ 完成 |
+| 设计决策记录 | `docs/architecture/design-decisions.md` | ✅ 完成（持续更新）|
+| 数据库设计文档 | `docs/architecture/database-design.md` | ✅ 完成 |
+| API 设计文档 | `docs/architecture/api-design.md` | ✅ 完成 |
+| 技术架构文档 | `docs/architecture/tech-architecture.md` | ✅ 完成 |
