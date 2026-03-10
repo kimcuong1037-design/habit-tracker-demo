@@ -32,6 +32,9 @@
 │  └───────────────────────┬─────────────────────────┘ │
 │  ┌───────────────────────▼─────────────────────────┐ │
 │  │  Routes → Controllers → Services → Prisma (DB) │ │
+│  │                            │                     │ │
+│  │                            └──→ Claude API       │ │
+│  │                           (encouragement.service)│ │
 │  └───────────────────────┬─────────────────────────┘ │
 │  ┌───────────────────────▼─────────────────────────┐ │
 │  │               SQLite (file-based)                │ │
@@ -127,7 +130,8 @@ habit-tracker-demo/
 │           │   ├── habit.service.ts
 │           │   ├── check-in.service.ts
 │           │   ├── streak.service.ts
-│           │   └── milestone.service.ts
+│           │   ├── milestone.service.ts
+│           │   └── encouragement.service.ts  # AI 鼓励语（Claude API + 缓存 + fallback）
 │           ├── middleware/       # 中间件
 │           │   ├── error-handler.ts
 │           │   ├── validate.ts  # Zod 校验中间件
@@ -161,6 +165,7 @@ habit-tracker-demo/
 | 日期 | dayjs | 轻量日期处理（see DD-010） |
 | 表单 | React Hook Form | 配合 @hookform/resolvers/zod |
 | HTTP 客户端 | fetch（原生） | 无需额外库 |
+| AI API | @anthropic-ai/sdk | Claude Haiku 生成每日鼓励语（see DD-013） |
 
 ### 3.3 开发工具
 
@@ -380,6 +385,7 @@ export function errorHandler(err: Error, _req: Request, res: Response, _next: Ne
 | `streak.service.ts` | Streak 计算（see DD-003） | `calculateCurrentStreak()`, `calculateLongestStreak()` |
 | `milestone.service.ts` | 里程碑触发检查、快照创建 | `checkAndTrigger()`, `dismiss()` |
 | `today.service.ts` | 聚合今日视图数据（see DD-011） | `getTodayView()` |
+| `encouragement.service.ts` | AI 鼓励语生成、缓存、fallback（see DD-013） | `getOrGenerate()`, `getFallback()` |
 
 ---
 
@@ -401,7 +407,20 @@ pnpm dev
 # → server: tsx watch      @ http://localhost:3000
 ```
 
-### 6.2 Vite 代理配置
+### 6.2 环境变量
+
+```bash
+# packages/server/.env
+DATABASE_URL="file:./dev.db"
+
+# AI 鼓励语功能（Phase 2d）
+ANTHROPIC_API_KEY="sk-ant-..."      # Claude API Key
+ANTHROPIC_MODEL="claude-haiku-4-5-20251001"  # 使用 Haiku，成本最低
+```
+
+> `ANTHROPIC_API_KEY` 未配置时，鼓励语功能自动 fallback 到静态文案，不影响其他功能。
+
+### 6.3 Vite 代理配置
 
 ```typescript
 // packages/client/vite.config.ts
@@ -417,7 +436,7 @@ export default defineConfig({
 });
 ```
 
-### 6.3 Root package.json Scripts
+### 6.4 Root package.json Scripts
 
 ```jsonc
 {
@@ -480,3 +499,4 @@ if (process.env.NODE_ENV === "production") {
 | DD-009 | Zod 共享校验 | 校验中间件 + 前端表单 |
 | DD-010 | dayjs 日期库 | 全栈工具函数 |
 | DD-011 | /api/today 聚合接口 | API + 前端首屏 |
+| DD-013 | AI 功能用 Anthropic SDK | encouragement.service + 环境变量 |

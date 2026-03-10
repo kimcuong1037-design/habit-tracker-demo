@@ -484,7 +484,13 @@
         "completionRate": 1.0,
         "longestStreak": 7
       }
-    ]
+    ],
+
+    // ── AI 每日鼓励语 ──
+    "encouragement": {
+      "message": "三天连续打卡了！保持这个节奏吧 ᕙ(⇀‸↼‶)ᕗ",
+      "source": "ai"                   // "ai" | "fallback"（前端无需区分，仅调试用）
+    }
   }
 }
 ```
@@ -502,7 +508,13 @@
 4. 查询本月补卡配额 → retroactiveQuota
 5. 检测未展示的断裂安慰 → pendingStreakBreaks
 6. 查询未关闭的里程碑 → pendingMilestones
-7. 组装返回
+7. 生成/获取 AI 每日鼓励语 → encouragement
+   a. 查询缓存（DailyEncouragement 表，当日是否已生成）
+   b. 有缓存 → 直接使用
+   c. 无缓存 → 调用 Claude Haiku API 生成，传入 streak/进度/断裂状态
+   d. API 失败 → 从静态文案库 fallback
+   e. 存入缓存
+8. 组装返回
 ```
 
 ---
@@ -527,3 +539,4 @@
 - Streak 由服务端实时计算后附加到响应中：see DD-003
 - 补卡配额全局共享（所有习惯合计每月 3 次）：see DD-007
 - 里程碑快照数据在创建时固化：see DD-005
+- AI 鼓励语使用 Anthropic SDK 单次调用，不引入 Agent SDK：see DD-013

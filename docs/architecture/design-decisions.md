@@ -146,4 +146,32 @@
 
 ---
 
+## DD-012: UI 组件方案 — shadcn/ui + 温暖调色
+
+| 项目 | 内容 |
+|------|------|
+| **日期** | 2026-03-10 |
+| **阶段** | Phase 2 — 前端开发准备 |
+| **背景** | 需要确定 UI 视觉风格和组件方案，在开发效率、产品调性（温暖+科学）、Tailwind 兼容性之间取得平衡 |
+| **方案** | 采用 shadcn/ui（基于 Radix + Tailwind）作为组件基础，自定义温暖色调主题 |
+| **备选方案** | ① Material Design 3（MD3 规范成熟，但纯 Tailwind 实现 ripple/elevation 工作量大，视觉偏工具感） ② 纯 Tailwind 自定义（最灵活但无组件基础，开发效率低） ③ DaisyUI（轻量但定制深度和社区活跃度不足） |
+| **决策理由** | ① shadcn/ui 组件代码直接复制到项目中，完全可控、可定制，不是黑盒依赖 ② 内置 Radix 提供无障碍支持和交互逻辑（Dialog、Toast 等）③ 通过自定义 CSS Variables 实现温暖色调（Emerald 主色 + Stone 暖灰中性色 + 12px 大圆角），兼顾产品调性 ④ 2024-2026 最主流的 React + Tailwind 方案，社区资源丰富，适合 Bootcamp 展示 |
+| **主题配置** | Primary: Emerald (#10B981)、Radius: 12px、Neutrals: Warm stone-tinted、语义色: success/warning/comfort/celebration |
+| **相关文件** | `packages/client/src/index.css`（主题变量）、`packages/client/components.json`（shadcn 配置） |
+
+---
+
+## DD-013: 不引入 Claude Agent SDK，AI 功能用 Anthropic SDK 直接调用
+
+| 项目 | 内容 |
+|------|------|
+| **日期** | 2026-03-10 |
+| **阶段** | Phase 2 — 技术选型 |
+| **背景** | 评估是否需要 Claude Agent SDK 来支持 Phase 2 功能开发中可能的 AI 集成 |
+| **方案** | 不引入 Agent SDK；如需 AI 功能（如生成安慰文案、里程碑庆祝语），直接使用 `@anthropic-ai/sdk` 做单次 API 调用 |
+| **备选方案** | 引入 Claude Agent SDK，构建具备工具调用和多步推理能力的 Agent |
+| **决策理由** | ① 项目核心功能（CRUD、check-in、streak、milestone）均为确定性逻辑，不需要 Agent 的自主推理能力 ② Agent SDK 引入 agent loop、工具注册、token 管理等额外复杂度，对 Bootcamp demo 而言成本过高 ③ 如需 AI 元素，单次 API 调用（生成文案等）即可满足，几行代码即可集成 ④ 保持架构简洁，避免过度工程化 |
+
+---
+
 <!-- 新决策请追加在此处，保持编号递增 -->
