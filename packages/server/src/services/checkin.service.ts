@@ -3,7 +3,7 @@ import { prisma } from "../utils/prisma.js";
 import { AppError } from "../middleware/error-handler.js";
 import { MAX_RETROACTIVE_PER_MONTH } from "@habit-tracker/shared";
 import type { CreateCheckInRequest } from "@habit-tracker/shared";
-// import { calculateStreak } from "./streak.service.js"; // TODO: Phase 2 启用
+import { calculateStreak } from "./streak.service.js";
 
 /** 打卡 */
 export async function createCheckIn(userId: string, habitId: string, data: CreateCheckInRequest) {
@@ -57,8 +57,9 @@ export async function createCheckIn(userId: string, habitId: string, data: Creat
     },
   });
 
-  // TODO Phase 2: 计算新 streak + 检查里程碑触发
-  const currentStreak = 0; // placeholder
+  // 计算新 streak
+  const currentStreak = await calculateStreak(habitId, data.date);
+  // TODO Phase 2: 检查里程碑触发
   const milestone = null; // placeholder
 
   return { checkIn, updatedStreak: currentStreak, milestone };

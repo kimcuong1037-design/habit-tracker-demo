@@ -1,18 +1,12 @@
+import type { TodayResponse } from "@habit-tracker/shared";
 import { api } from "./client.js";
 
-// TODO: 使用 shared 包中的 TodayResponse 类型（需要根据实际 API 响应调整）
-export interface TodayData {
-  progress: { total: number; completed: number; allDone: boolean };
-  habits: Array<Record<string, unknown>>;
-  retroactiveQuota: { month: string; used: number; limit: number; remaining: number };
-  pendingStreakBreaks: Array<Record<string, unknown>>;
-  pendingMilestones: Array<Record<string, unknown>>;
-}
+export type TodayData = TodayResponse["data"];
 
 /** 获取今日综合视图 */
 export function getToday(date?: string) {
   const qs = date ? `?date=${date}` : "";
-  return api.get<{ data: TodayData }>(`/api/today${qs}`);
+  return api.get<TodayResponse>(`/api/today${qs}`);
 }
 
 /** 关闭里程碑回顾 */

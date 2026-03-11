@@ -31,32 +31,47 @@ export interface CreateCheckInRequest {
 export interface HabitWithStreak extends Habit {
   currentStreak: number;
   longestStreak: number;
-}
-
-export interface TodayHabitItem {
-  habit: HabitWithStreak;
-  checkedIn: boolean;
+  totalCheckIns: number;
+  checkedInToday: boolean;
+  canRetroactive: boolean;
 }
 
 export interface TodayResponse {
   data: {
-    date: string;
-    habits: TodayHabitItem[];
-    completedCount: number;
-    totalCount: number;
-    pendingMilestones: MilestoneEvent[];
-    streakBreaks: StreakBreakEvent[];
-    retroactiveQuota: {
-      used: number;
-      max: number;
+    progress: {
+      total: number;
+      completed: number;
+      allDone: boolean;
     };
+    habits: HabitWithStreak[];
+    retroactiveQuota: {
+      month: string;
+      used: number;
+      limit: number;
+      remaining: number;
+    };
+    pendingStreakBreaks: Array<{
+      id: string;
+      habitId: string;
+      habitName: string;
+      breakDate: string;
+    }>;
+    pendingMilestones: Array<{
+      id: string;
+      habitId: string;
+      habitName: string;
+      type: string;
+      totalDays: number;
+      completionRate: number;
+      longestStreak: number;
+    }>;
   };
 }
 
 export interface CheckInResponse {
   data: {
     checkIn: CheckIn;
-    currentStreak: number;
+    updatedStreak: number;
     milestone: MilestoneEvent | null;
   };
 }

@@ -1,8 +1,9 @@
+import dayjs from "dayjs";
 import { prisma } from "../utils/prisma.js";
 import { AppError } from "../middleware/error-handler.js";
 import { MAX_ACTIVE_HABITS } from "@habit-tracker/shared";
 import type { CreateHabitRequest, UpdateHabitRequest } from "@habit-tracker/shared";
-// import { calculateStreak } from "./streak.service.js"; // TODO: Phase 2 启用
+import { calculateStreak, calculateLongestStreak } from "./streak.service.js";
 
 /** 创建习惯 */
 export async function createHabit(userId: string, data: CreateHabitRequest) {
@@ -55,8 +56,27 @@ export async function listHabits(
     orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
   });
 
-  // TODO Phase 2: 为每个习惯计算 checkedInToday, currentStreak, canRetroactive, totalCheckIns
-  return habits;
+  const baseDate = options.date || dayjs().format("YYYY-MM-DD");
+  const yesterday = dayjs(baseDate).subtract(1, "day").format("YYYY-MM-DD");
+
+  const enriched = await Promise.all(
+    habits.map(async (habit) => {
+      const checkedInToday = !!(await prisma.checkIn.findUnique({
+        where: { habitId_date: { habitId: habit.id, date: baseDate } },
+      }));
+      const currentStreak = await calculateStreak(habit.id, baseDate);
+      const totalCheckIns = await prisma.checkIn.count({ where: { habitId: habit.id } });
+
+      const yesterdayCheckIn = await prisma.checkIn.findUnique({
+        where: { habitId_date: { habitId: habit.id, date: yesterday } },
+      });
+      const canRetroactive = !yesterdayCheckIn && habit.startDate <= yesterday;
+
+      return { ...habit, checkedInToday, currentStreak, totalCheckIns, canRetroactive };
+    }),
+  );
+
+  return enriched;
 }
 
 /** 获取单个习惯详情 */
@@ -68,8 +88,22 @@ export async function getHabit(userId: string, habitId: string) {
     throw new AppError(404, "NOT_FOUND", "习惯不存在");
   }
 
-  // TODO Phase 2: 附加 currentStreak, longestStreak, totalCheckIns, completionRate, checkedInToday, canRetroactive
-  return habit;
+  const today = dayjs().format("YYYY-MM-DD");
+  const yesterday = dayjs().subtract(1, "day").format("YYYY-MM-DD");
+
+  const checkedInToday = !!(await prisma.checkIn.findUnique({
+    where: { habitId_date: { habitId: habit.id, date: today } },
+  }));
+  const currentStreak = await calculateStreak(habit.id, today);
+  const longestStreak = await calculateLongestStreak(habit.id);
+  const totalCheckIns = await prisma.checkIn.count({ where: { habitId: habit.id } });
+
+  const yesterdayCheckIn = await prisma.checkIn.findUnique({
+    where: { habitId_date: { habitId: habit.id, date: yesterday } },
+  });
+  const canRetroactive = !yesterdayCheckIn && habit.startDate <= yesterday;
+
+  return { ...habit, currentStreak, longestStreak, totalCheckIns, checkedInToday, canRetroactive };
 }
 
 /** 更新习惯 */

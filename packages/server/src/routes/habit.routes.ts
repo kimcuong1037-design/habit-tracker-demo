@@ -45,7 +45,7 @@ router.get("/:id", async (req, res, next) => {
 router.put("/:id", validate(updateHabitSchema), async (req, res, next) => {
   try {
     const userId = (req as any).userId;
-    const habit = await habitService.updateHabit(userId, req.params.id, req.body);
+    const habit = await habitService.updateHabit(userId, req.params.id as string, req.body);
     res.json({ data: habit });
   } catch (err) {
     next(err);
@@ -67,7 +67,7 @@ router.delete("/:id", async (req, res, next) => {
 router.post("/:id/check-ins", validate(createCheckInSchema), async (req, res, next) => {
   try {
     const userId = (req as any).userId;
-    const result = await checkinService.createCheckIn(userId, req.params.id, req.body);
+    const result = await checkinService.createCheckIn(userId, req.params.id as string, req.body);
     res.status(201).json({ data: result });
   } catch (err) {
     next(err);

@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import { prisma } from "../utils/prisma.js";
-import { calculateStreak } from "./streak.service.js";
+import { calculateStreak, calculateLongestStreak } from "./streak.service.js";
 import { getRetroactiveQuota } from "./checkin.service.js";
 
 /** 获取今日综合视图（DD-011） */
@@ -13,21 +13,29 @@ export async function getTodayView(userId: string, date?: string) {
     orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
   });
 
-  // TODO Phase 2: 为每个习惯计算完整的计算字段
+  const yesterday = dayjs(baseDate).subtract(1, "day").format("YYYY-MM-DD");
+
   const habitItems = await Promise.all(
     habits.map(async (habit) => {
       const checkedInToday = !!(await prisma.checkIn.findUnique({
         where: { habitId_date: { habitId: habit.id, date: baseDate } },
       }));
       const currentStreak = await calculateStreak(habit.id, baseDate);
+      const longestStreak = await calculateLongestStreak(habit.id);
       const totalCheckIns = await prisma.checkIn.count({ where: { habitId: habit.id } });
+
+      const yesterdayCheckIn = await prisma.checkIn.findUnique({
+        where: { habitId_date: { habitId: habit.id, date: yesterday } },
+      });
+      const canRetroactive = !yesterdayCheckIn && habit.startDate <= yesterday;
 
       return {
         ...habit,
         checkedInToday,
         currentStreak,
+        longestStreak,
         totalCheckIns,
-        canRetroactive: false, // TODO: 计算是否可补昨日卡
+        canRetroactive,
       };
     }),
   );
