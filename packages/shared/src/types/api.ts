@@ -10,6 +10,7 @@ export interface CreateHabitRequest {
   cueType: CueType;
   cueValue: string;
   stackedHabitId?: string;
+  reminderTime?: string | null; // "HH:mm" or null
 }
 
 export interface UpdateHabitRequest {
@@ -18,6 +19,7 @@ export interface UpdateHabitRequest {
   cueType?: CueType;
   cueValue?: string;
   stackedHabitId?: string | null;
+  reminderTime?: string | null; // "HH:mm" or null
   isActive?: boolean;
   sortOrder?: number;
 }

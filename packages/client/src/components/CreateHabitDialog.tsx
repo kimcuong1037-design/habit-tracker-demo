@@ -15,6 +15,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog.js";
 import { Badge } from "@/components/ui/badge.js";
+import ReminderTimePicker from "./ReminderTimePicker.js";
 
 const TRIGGER_PRESETS = [
   "起床后",
@@ -52,6 +53,8 @@ export default function CreateHabitDialog({
   const [customTrigger, setCustomTrigger] = useState("");
   const [stackedHabitId, setStackedHabitId] = useState("");
 
+  const [reminderTime, setReminderTime] = useState<string | null>(null);
+
   const [submitting, setSubmitting] = useState(false);
 
   const resetForm = () => {
@@ -63,6 +66,7 @@ export default function CreateHabitDialog({
     setTriggerValue("");
     setCustomTrigger("");
     setStackedHabitId("");
+    setReminderTime(null);
   };
 
   const handleOpenChange = (v: boolean) => {
@@ -95,6 +99,7 @@ export default function CreateHabitDialog({
             : existingHabits.find((h) => h.id === stackedHabitId)!.name,
         stackedHabitId:
           cueType === CueType.STACKING ? stackedHabitId : undefined,
+        reminderTime: reminderTime ?? undefined,
       };
       await createHabit(payload);
       toast.success(`习惯「${name.trim()}」创建成功！`);
@@ -172,6 +177,9 @@ export default function CreateHabitDialog({
                 className="h-9 w-full rounded-lg border border-input bg-background px-3 text-sm outline-none transition-colors focus:border-ring focus:ring-2 focus:ring-ring/50"
               />
             </div>
+
+            {/* Reminder time */}
+            <ReminderTimePicker value={reminderTime} onChange={setReminderTime} />
 
             {/* Frequency (locked) */}
             <div className="space-y-1.5">

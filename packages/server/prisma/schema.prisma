@@ -32,6 +32,7 @@ model Habit {
   cueType        String
   cueValue       String
   stackedHabitId String?
+  reminderTime   String? // "HH:mm" format, e.g. "08:00" (DD-014)
   isActive       Boolean @default(true)
   sortOrder      Int     @default(0)
 

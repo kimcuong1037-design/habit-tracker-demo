@@ -14,6 +14,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog.js";
 import { Badge } from "@/components/ui/badge.js";
+import ReminderTimePicker from "./ReminderTimePicker.js";
 
 const TRIGGER_PRESETS = [
   "起床后",
@@ -46,6 +47,7 @@ export default function EditHabitDialog({
   const [triggerValue, setTriggerValue] = useState("");
   const [customTrigger, setCustomTrigger] = useState("");
   const [stackedHabitId, setStackedHabitId] = useState("");
+  const [reminderTime, setReminderTime] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   // Pre-fill when habit changes or dialog opens
@@ -61,6 +63,7 @@ export default function EditHabitDialog({
       } else {
         setStackedHabitId(habit.stackedHabitId ?? "");
       }
+      setReminderTime(habit.reminderTime ?? null);
     }
   }, [open, habit]);
 
@@ -88,7 +91,8 @@ export default function EditHabitDialog({
       cueType !== habit.cueType ||
       newCueValue !== habit.cueValue ||
       (cueType === CueType.STACKING &&
-        stackedHabitId !== (habit.stackedHabitId ?? ""))
+        stackedHabitId !== (habit.stackedHabitId ?? "")) ||
+      reminderTime !== (habit.reminderTime ?? null)
     );
   };
 
@@ -114,6 +118,9 @@ export default function EditHabitDialog({
       } else if (habit.cueType === CueType.STACKING) {
         payload.stackedHabitId = null;
       }
+
+      if (reminderTime !== (habit.reminderTime ?? null))
+        payload.reminderTime = reminderTime;
 
       await updateHabit(habit.id, payload);
       toast.success(`习惯「${name.trim()}」已更新`);
@@ -174,6 +181,9 @@ export default function EditHabitDialog({
               {habit.startDate}
             </div>
           </div>
+
+          {/* Reminder time */}
+          <ReminderTimePicker value={reminderTime} onChange={setReminderTime} />
 
           {/* Cue section */}
           <div className="space-y-1.5">

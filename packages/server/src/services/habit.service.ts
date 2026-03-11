@@ -36,6 +36,7 @@ export async function createHabit(userId: string, data: CreateHabitRequest) {
       cueType: data.cueType,
       cueValue: data.cueValue,
       stackedHabitId: data.stackedHabitId ?? null,
+      reminderTime: data.reminderTime ?? null,
       sortOrder: nextOrder,
     },
   });
@@ -132,6 +133,7 @@ export async function updateHabit(userId: string, habitId: string, data: UpdateH
       ...(data.cueType !== undefined && { cueType: data.cueType }),
       ...(data.cueValue !== undefined && { cueValue: data.cueValue }),
       ...(data.stackedHabitId !== undefined && { stackedHabitId: data.stackedHabitId }),
+      ...(data.reminderTime !== undefined && { reminderTime: data.reminderTime }),
       ...(data.isActive !== undefined && { isActive: data.isActive }),
       ...(data.sortOrder !== undefined && { sortOrder: data.sortOrder }),
     },

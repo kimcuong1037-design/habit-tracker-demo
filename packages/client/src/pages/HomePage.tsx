@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button.js";
 import { Card, CardContent } from "@/components/ui/card.js";
 import { useToday } from "@/hooks/useToday.js";
 import { useHabits } from "@/hooks/useHabits.js";
+import { useReminder } from "@/hooks/useReminder.js";
 import { createCheckIn, deleteHabit } from "@/api/habits.js";
 import { dismissMilestone, dismissStreakBreak } from "@/api/today.js";
 
@@ -25,6 +26,9 @@ export default function HomePage() {
   const [deleteHabitId, setDeleteHabitId] = useState<string | null>(null);
 
   const activeHabits = habits.filter((h) => h.isActive);
+
+  // Initialize reminder scheduler with today's habits
+  useReminder(today?.habits ?? []);
   const editTarget = activeHabits.find((h) => h.id === editHabitId) ?? null;
   const deleteTarget = activeHabits.find((h) => h.id === deleteHabitId) ?? null;
 
@@ -160,8 +164,8 @@ export default function HomePage() {
               </div>
             )}
 
-            {/* FAB */}
-            <div className="fixed bottom-6 right-6">
+            {/* FAB — above bottom nav */}
+            <div className="fixed bottom-20 right-6">
               <Button
                 size="lg"
                 onClick={() => setCreateOpen(true)}

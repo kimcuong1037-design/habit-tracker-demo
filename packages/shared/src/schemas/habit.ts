@@ -4,6 +4,9 @@ import { CueType } from "../constants/enums.js";
 /** 日期格式校验 (YYYY-MM-DD) */
 const dateString = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "日期格式须为 YYYY-MM-DD");
 
+/** 时间格式校验 (HH:mm) */
+const timeString = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "时间格式须为 HH:mm");
+
 /** 创建习惯校验 */
 export const createHabitSchema = z.object({
   name: z.string().min(1, "习惯名称不能为空").max(50, "习惯名称不能超过50个字符"),
@@ -12,6 +15,7 @@ export const createHabitSchema = z.object({
   cueType: z.nativeEnum(CueType),
   cueValue: z.string().min(1, "触发场景不能为空"),
   stackedHabitId: z.string().uuid().optional(),
+  reminderTime: timeString.optional().nullable(),
 });
 
 /** 更新习惯校验 */
@@ -23,6 +27,7 @@ export const updateHabitSchema = z.object({
   stackedHabitId: z.string().uuid().optional().nullable(),
   isActive: z.boolean().optional(),
   sortOrder: z.number().int().optional(),
+  reminderTime: timeString.optional().nullable(),
 });
 
 /** 打卡校验 */

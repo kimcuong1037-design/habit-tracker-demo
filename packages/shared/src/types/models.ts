@@ -11,6 +11,7 @@ export interface Habit {
   cueType: CueType;
   cueValue: string;
   stackedHabitId: string | null;
+  reminderTime: string | null; // "HH:mm" or null
   isActive: boolean;
   sortOrder: number;
   createdAt: string;
