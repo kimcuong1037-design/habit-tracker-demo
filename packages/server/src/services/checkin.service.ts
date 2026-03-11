@@ -1,9 +1,17 @@
 import dayjs from "dayjs";
 import { prisma } from "../utils/prisma.js";
 import { AppError } from "../middleware/error-handler.js";
-import { MAX_RETROACTIVE_PER_MONTH } from "@habit-tracker/shared";
+import { MAX_RETROACTIVE_PER_MONTH, MilestoneType } from "@habit-tracker/shared";
 import type { CreateCheckInRequest } from "@habit-tracker/shared";
-import { calculateStreak } from "./streak.service.js";
+import { calculateStreak, calculateLongestStreak } from "./streak.service.js";
+
+const MILESTONE_THRESHOLDS: Record<number, MilestoneType> = {
+  7: MilestoneType.DAY_7,
+  21: MilestoneType.DAY_21,
+  30: MilestoneType.DAY_30,
+  66: MilestoneType.DAY_66,
+  100: MilestoneType.DAY_100,
+};
 
 /** 打卡 */
 export async function createCheckIn(userId: string, habitId: string, data: CreateCheckInRequest) {
@@ -59,8 +67,35 @@ export async function createCheckIn(userId: string, habitId: string, data: Creat
 
   // 计算新 streak
   const currentStreak = await calculateStreak(habitId, data.date);
-  // TODO Phase 2: 检查里程碑触发
-  const milestone = null; // placeholder
+
+  // 检查里程碑触发（DD-005）
+  const totalCheckIns = await prisma.checkIn.count({ where: { habitId } });
+  const milestoneType = MILESTONE_THRESHOLDS[totalCheckIns];
+  let milestone = null;
+
+  if (milestoneType) {
+    // 检查是否已存在该里程碑（@@unique([habitId, type])）
+    const existing = await prisma.milestoneEvent.findUnique({
+      where: { habitId_type: { habitId, type: milestoneType } },
+    });
+    if (!existing) {
+      const longestStreak = await calculateLongestStreak(habitId);
+      const daysSinceStart = dayjs(data.date).diff(dayjs(habit.startDate), "day") + 1;
+      const completionRate = daysSinceStart > 0
+        ? Math.round((totalCheckIns / daysSinceStart) * 100) / 100
+        : 1;
+
+      milestone = await prisma.milestoneEvent.create({
+        data: {
+          habitId,
+          type: milestoneType,
+          totalDays: totalCheckIns,
+          completionRate,
+          longestStreak,
+        },
+      });
+    }
+  }
 
   return { checkIn, updatedStreak: currentStreak, milestone };
 }

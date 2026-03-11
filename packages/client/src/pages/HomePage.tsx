@@ -4,6 +4,8 @@ import { toast } from "sonner";
 import Layout from "@/components/Layout.js";
 import ProgressBar from "@/components/ProgressBar.js";
 import HabitCard from "@/components/HabitCard.js";
+import StreakBreakCard from "@/components/StreakBreakCard.js";
+import MilestoneDialog from "@/components/MilestoneDialog.js";
 import CreateHabitDialog from "@/components/CreateHabitDialog.js";
 import EditHabitDialog from "@/components/EditHabitDialog.js";
 import DeleteHabitDialog from "@/components/DeleteHabitDialog.js";
@@ -12,6 +14,7 @@ import { Card, CardContent } from "@/components/ui/card.js";
 import { useToday } from "@/hooks/useToday.js";
 import { useHabits } from "@/hooks/useHabits.js";
 import { createCheckIn, deleteHabit } from "@/api/habits.js";
+import { dismissMilestone, dismissStreakBreak } from "@/api/today.js";
 
 export default function HomePage() {
   const { data: today, loading, refresh: refreshToday } = useToday();
@@ -23,6 +26,9 @@ export default function HomePage() {
   const activeHabits = habits.filter((h) => h.isActive);
   const editTarget = activeHabits.find((h) => h.id === editHabitId) ?? null;
   const deleteTarget = activeHabits.find((h) => h.id === deleteHabitId) ?? null;
+
+  // Show the first pending milestone as a modal
+  const activeMilestone = today?.pendingMilestones[0] ?? null;
 
   const refreshAll = async () => {
     await Promise.all([refreshHabits(), refreshToday()]);
@@ -44,6 +50,17 @@ export default function HomePage() {
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "删除失败，请重试");
     }
+  };
+
+  const handleDismissMilestone = async () => {
+    if (!activeMilestone) return;
+    await dismissMilestone(activeMilestone.id);
+    await refreshToday();
+  };
+
+  const handleDismissStreakBreak = async (id: string) => {
+    await dismissStreakBreak(id);
+    await refreshToday();
   };
 
   // Split today items into uncompleted / completed
@@ -85,6 +102,20 @@ export default function HomePage() {
               total={today.progress.total}
               completed={today.progress.completed}
             />
+
+            {/* Streak break comfort cards */}
+            {today.pendingStreakBreaks.length > 0 && (
+              <div className="space-y-3">
+                {today.pendingStreakBreaks.map((sb) => (
+                  <StreakBreakCard
+                    key={sb.id}
+                    habitName={sb.habitName}
+                    breakDate={sb.breakDate}
+                    onDismiss={() => handleDismissStreakBreak(sb.id)}
+                  />
+                ))}
+              </div>
+            )}
 
             {/* Uncompleted habits */}
             <div className="space-y-3">
@@ -160,6 +191,14 @@ export default function HomePage() {
         habitName={deleteTarget?.name ?? ""}
         onConfirm={handleDelete}
       />
+
+      {activeMilestone && (
+        <MilestoneDialog
+          open
+          onDismiss={handleDismissMilestone}
+          milestone={activeMilestone}
+        />
+      )}
     </Layout>
   );
 }

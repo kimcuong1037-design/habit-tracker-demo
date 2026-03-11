@@ -14,6 +14,36 @@ export async function getTodayView(userId: string, date?: string) {
   });
 
   const yesterday = dayjs(baseDate).subtract(1, "day").format("YYYY-MM-DD");
+  const dayBeforeYesterday = dayjs(baseDate).subtract(2, "day").format("YYYY-MM-DD");
+
+  // StreakBreak 自动检测（DD-004）
+  // 如果前天有打卡但昨天没有，说明昨天断了连续打卡
+  await Promise.all(
+    habits.map(async (habit) => {
+      // 习惯必须在昨天之前就已开始
+      if (habit.startDate > dayBeforeYesterday) return;
+
+      const yesterdayCheckIn = await prisma.checkIn.findUnique({
+        where: { habitId_date: { habitId: habit.id, date: yesterday } },
+      });
+      if (yesterdayCheckIn) return; // 昨天有打卡，没断
+
+      const dayBeforeCheckIn = await prisma.checkIn.findUnique({
+        where: { habitId_date: { habitId: habit.id, date: dayBeforeYesterday } },
+      });
+      if (!dayBeforeCheckIn) return; // 前天也没打卡，不是刚断的
+
+      // 检查是否已记录过这次断裂（@@unique([habitId, breakDate])）
+      const existing = await prisma.streakBreakEvent.findUnique({
+        where: { habitId_breakDate: { habitId: habit.id, breakDate: yesterday } },
+      });
+      if (existing) return;
+
+      await prisma.streakBreakEvent.create({
+        data: { habitId: habit.id, breakDate: yesterday },
+      });
+    }),
+  );
 
   const habitItems = await Promise.all(
     habits.map(async (habit) => {
