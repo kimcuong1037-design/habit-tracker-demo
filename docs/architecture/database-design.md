@@ -108,6 +108,7 @@ model Habit {
   stackedHabitId String?                    // 叠加的目标习惯 ID（stacking 模式）
   isActive    Boolean @default(true)
   sortOrder   Int     @default(0)           // 列表排序
+  reminderTime String?                      // 每日提醒时间 "HH:mm"，null=不提醒（追加需求 see DD-014）
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -123,6 +124,9 @@ model Habit {
   @@index([userId, isActive])
   @@index([stackedHabitId])
 }
+
+// 追加需求（2026-03-11）：reminderTime 字段已添加到 Habit 模型中
+// see DD-014
 
 // ──────────────────────────────────
 // CheckIn（打卡记录）
@@ -227,6 +231,7 @@ const DEFAULT_USER_ID = "default-user";
 | `stackedHabitId` | 叠加目标习惯 | stacking 模式：引用的习惯 ID；trigger 模式：null |
 | `isActive` | 是否活跃 | 默认 true，删除时可考虑软删除（v1 直接硬删除） |
 | `sortOrder` | 排序权重 | 默认 0，用于自定义排序（v1 按创建时间） |
+| `reminderTime` | 每日提醒时间 | 可选，`HH:mm` 格式（如 `"08:00"`），null 表示不提醒（追加需求，see DD-014） |
 
 **Cue 设计说明：**
 
@@ -436,3 +441,4 @@ async function seedDefaultUser() {
 | Habit.cueValue 存关联习惯 ID | 拆分为 cueValue + stackedHabitId | stacking 模式需要同时存描述文案和引用关系 |
 | 无 sortOrder 字段 | 新增 | 支持列表自定义排序 |
 | 无鼓励语缓存 | 新增 DailyEncouragement 表 | AI 鼓励语每天缓存一条，避免重复调用 API |
+| 无提醒相关字段 | Habit 表增加 `reminderTime` 字段 | 追加需求：支持每日定时提醒（see DD-014） |

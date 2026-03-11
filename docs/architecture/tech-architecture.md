@@ -102,7 +102,8 @@ habit-tracker-demo/
 │   │       │   ├── use-habits.ts
 │   │       │   └── use-check-in.ts
 │   │       ├── services/        # API 调用层
-│   │       │   └── api.ts
+│   │       │   ├── api.ts
+│   │       │   └── reminder.ts  # 提醒通知调度（追加需求 see DD-014）
 │   │       ├── types/           # 前端专用类型
 │   │       └── utils/           # 工具函数
 │   │
@@ -500,3 +501,112 @@ if (process.env.NODE_ENV === "production") {
 | DD-010 | dayjs 日期库 | 全栈工具函数 |
 | DD-011 | /api/today 聚合接口 | API + 前端首屏 |
 | DD-013 | AI 功能用 Anthropic SDK | encouragement.service + 环境变量 |
+| DD-014 | 提醒通知用 Web Notification API | 客户端 reminder.ts + Service Worker |
+
+---
+
+> **以下为后续追加的架构说明（2026-03-11），不修改上述原始内容。**
+
+## 9. 提醒通知架构（追加需求 see DD-014）
+
+### 9.1 架构概览
+
+```
+┌─────────────────────────────────────────────────────┐
+│                     Browser                          │
+│                                                      │
+│  ┌──────────────────────────────────────────────┐   │
+│  │          React SPA                            │   │
+│  │  ┌─────────────────┐  ┌──────────────────┐   │   │
+│  │  │  useReminder()  │  │  reminder.ts     │   │   │  ← 前台：每分钟检查
+│  │  │  (hook)         │──│  (调度服务)       │   │   │
+│  │  └─────────────────┘  └────────┬─────────┘   │   │
+│  └─────────────────────────────────┼─────────────┘   │
+│                                    │                  │
+│                                    ▼                  │
+│  ┌──────────────────────────────────────────────┐   │
+│  │           Service Worker (sw-reminder.js)     │   │  ← 后台：接收消息发通知
+│  │  ┌──────────────┐  ┌──────────────────────┐  │   │
+│  │  │ message handler│  │ Notification.show() │  │   │
+│  │  └──────────────┘  └──────────────────────┘  │   │
+│  └──────────────────────────────────────────────┘   │
+│                                                      │
+│  ┌──────────────────────────────────────────────┐   │
+│  │          Web Notification API (OS Level)       │   │  ← 操作系统通知
+│  └──────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────┘
+```
+
+### 9.2 核心模块
+
+| 模块 | 位置 | 职责 |
+|------|------|------|
+| `reminder.ts` | `packages/client/src/services/` | 通知调度核心：权限管理、定时检查、防重复发送 |
+| `useReminder` | `packages/client/src/hooks/` | React hook：初始化调度器、响应习惯数据变化 |
+| `sw-reminder.js` | `packages/client/public/` | Service Worker：后台通知发送 |
+| `useBadge` | `packages/client/src/hooks/` | Nice-to-have：document.title badge 更新 |
+
+### 9.3 前台调度逻辑
+
+```typescript
+// packages/client/src/services/reminder.ts（概念代码）
+
+class ReminderScheduler {
+  private sentToday: Set<string> = new Set(); // habitId set，防重复
+
+  start(habits: HabitWithStatus[]) {
+    // 每分钟检查一次
+    setInterval(() => this.check(habits), 60_000);
+  }
+
+  private check(habits: HabitWithStatus[]) {
+    const now = dayjs().format("HH:mm");
+    for (const habit of habits) {
+      if (
+        habit.reminderTime === now &&
+        !habit.checkedInToday &&
+        !this.sentToday.has(habit.id)
+      ) {
+        this.notify(habit);
+        this.sentToday.add(habit.id);
+      }
+    }
+  }
+
+  private async notify(habit: HabitWithStatus) {
+    if (Notification.permission !== "granted") return;
+    new Notification("⏰ 习惯打卡提醒", {
+      body: `「${habit.name}」— 现在是你的习惯时间！`,
+      tag: `reminder-${habit.id}`, // 防重复通知
+    });
+  }
+
+  // 每天零点重置 sentToday
+  resetDaily() { this.sentToday.clear(); }
+}
+```
+
+### 9.4 Service Worker（后台通知）
+
+```typescript
+// packages/client/public/sw-reminder.js（概念代码）
+
+self.addEventListener("message", (event) => {
+  if (event.data.type === "SCHEDULE_REMINDER") {
+    const { habitName, habitId, delay } = event.data;
+    setTimeout(() => {
+      self.registration.showNotification("⏰ 习惯打卡提醒", {
+        body: `「${habitName}」— 现在是你的习惯时间！`,
+        tag: `reminder-${habitId}`,
+      });
+    }, delay);
+  }
+});
+```
+
+### 9.5 关键设计要点
+
+1. **无服务端依赖**：提醒逻辑完全在客户端，服务端仅存储 `reminderTime` 字段
+2. **防重复**：每个习惯每天最多一次通知，使用 `Set` + Notification `tag` 双重保障
+3. **优雅降级**：权限未授予或 API 不支持时静默降级，不影响核心功能
+4. **每日重置**：零点或应用重新加载时清空已发送记录

@@ -519,6 +519,64 @@
 
 ---
 
+---
+
+> **以下为后续追加的 API 变更（2026-03-11），不修改上述原始 API 定义。**
+
+## 追加：习惯提醒字段扩展（see DD-014）
+
+### 影响的现有 API
+
+以下 API 的请求/响应中新增 `reminderTime` 字段：
+
+**`POST /api/habits`（创建习惯）— 请求新增可选字段：**
+
+```typescript
+{
+  // ...原有字段不变
+  "reminderTime": "08:00"              // 可选，HH:mm 格式，null 或省略表示不设置提醒
+}
+```
+
+**`PUT /api/habits/:id`（更新习惯）— 请求新增可选字段：**
+
+```typescript
+{
+  // ...原有字段不变
+  "reminderTime": "08:00"              // 可选，HH:mm 格式，null 表示清除提醒
+}
+```
+
+**`GET /api/habits`、`GET /api/habits/:id`、`GET /api/today` — 响应新增字段：**
+
+```typescript
+{
+  // ...原有字段不变
+  "reminderTime": "08:00"              // string | null
+}
+```
+
+### Zod Schema 扩展
+
+在 `packages/shared/src/schemas/habit.ts` 中扩展：
+
+```typescript
+// reminderTime 校验：HH:mm 格式
+const reminderTimeSchema = z
+  .string()
+  .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "提醒时间格式应为 HH:mm")
+  .nullable()
+  .optional();
+```
+
+### 说明
+
+- `reminderTime` 为纯前端消费的数据，服务端仅负责存储和返回
+- 定时检查和通知发送逻辑全部在客户端完成（Web Notification API + Service Worker）
+- 服务端无需定时任务或推送服务
+
+---
+
 ## 附录：前端调用场景映射
 
 | 用户场景 | 调用的 API | 备注 |
@@ -532,6 +590,7 @@
 | 关闭里程碑卡片 | `POST /api/milestones/:id/dismiss` | |
 | 关闭安慰消息 | `POST /api/streak-breaks/:id/dismiss` | |
 | 周视图 | `GET /api/habits/:id/check-ins?from=...&to=...` | 按习惯查询一周数据 |
+| 设置/修改提醒时间 | `POST /api/habits` 或 `PUT /api/habits/:id` | `reminderTime` 字段（追加需求） |
 
 ## 附录：设计决策引用
 
@@ -540,3 +599,4 @@
 - 补卡配额全局共享（所有习惯合计每月 3 次）：see DD-007
 - 里程碑快照数据在创建时固化：see DD-005
 - AI 鼓励语使用 Anthropic SDK 单次调用，不引入 Agent SDK：see DD-013
+- 提醒通知使用 Web Notification API，客户端调度，无需服务端推送：see DD-014

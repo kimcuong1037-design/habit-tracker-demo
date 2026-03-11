@@ -174,4 +174,19 @@
 
 ---
 
+## DD-014: 提醒通知方案 — Web Notification API + 客户端调度
+
+| 项目 | 内容 |
+|------|------|
+| **日期** | 2026-03-11 |
+| **阶段** | Phase 0 — 追加需求设计 |
+| **背景** | 原始需求未包含提醒功能。用户反馈需要定时提醒来辅助习惯养成——Cue 提供心理触发，但缺少时间维度的物理提醒。需要设计一个轻量级方案，不引入过重的基础设施 |
+| **方案** | 使用浏览器原生 Web Notification API 发送系统通知，前端 `setInterval` 定时检查 + Service Worker 后台通知。`reminderTime`（`HH:mm` 或 null）作为 Habit 表的可选字段存储。Badge 通过 `document.title` 实现（nice-to-have） |
+| **备选方案** | ① Web Push（需要 Push Server + VAPID 密钥 + 后端定时任务，基础设施过重） ② PWA 全套（需要 manifest + offline 支持，超出 demo 范围） ③ 仅前端 `setTimeout`（无后台能力，标签页不活跃时无法提醒） |
+| **决策理由** | ① Web Notification API 浏览器原生支持，零依赖，与项目"轻量"定位一致 ② 服务端零改动（仅多存一个字段），不引入 cron job 或 push 服务 ③ Service Worker 提供有限的后台能力（标签页存在但不活跃时仍可工作），对 demo 项目足够 ④ 优雅降级：用户拒绝权限或浏览器不支持时，其他功能完全不受影响 |
+| **局限性** | ① 浏览器完全关闭时无法发送通知（需要 Web Push 才能实现） ② 部分移动端浏览器对 Web Notification 支持有限 ③ 精度为分钟级（`setInterval` 60s），非秒级精确 |
+| **影响范围** | Habit 表新增 `reminderTime` 字段、创建/编辑习惯表单新增字段、前端新增 `reminder.ts` 服务和 `sw-reminder.js`、API 请求/响应新增字段 |
+
+---
+
 <!-- 新决策请追加在此处，保持编号递增 -->

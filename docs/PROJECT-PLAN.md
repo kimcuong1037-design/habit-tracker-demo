@@ -43,6 +43,7 @@
 ### Phase 3: 增强功能
 - [ ] 科学习惯养成引导（基于心理学原理）
 - [ ] 选做功能评估与实现
+- [ ] 功能 9: 习惯提醒通知（追加需求 — Web Notification + Service Worker, see DD-014）
 
 ### Phase 4: 测试与优化
 - [ ] 单元测试
