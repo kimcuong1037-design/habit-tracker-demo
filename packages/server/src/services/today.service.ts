@@ -2,6 +2,7 @@ import dayjs from "dayjs";
 import { prisma } from "../utils/prisma.js";
 import { calculateStreak, calculateLongestStreak } from "./streak.service.js";
 import { getRetroactiveQuota } from "./checkin.service.js";
+import { getOrGenerateEncouragement } from "./encouragement.service.js";
 
 /** 获取今日综合视图（DD-011） */
 export async function getTodayView(userId: string, date?: string) {
@@ -93,13 +94,31 @@ export async function getTodayView(userId: string, date?: string) {
     include: { habit: { select: { name: true } } },
   });
 
+  // AI 每日鼓励（DD-013）
+  const progress = {
+    total: habits.length,
+    completed: completedCount,
+    allDone: completedCount === habits.length && habits.length > 0,
+  };
+
+  const encouragement = habits.length > 0
+    ? await getOrGenerateEncouragement({
+        date: baseDate,
+        habits: habitItems.map((h) => ({
+          name: h.name,
+          currentStreak: h.currentStreak,
+          checkedInToday: h.checkedInToday,
+          totalCheckIns: h.totalCheckIns,
+        })),
+        progress,
+        hasStreakBreaks: pendingStreakBreaks.length > 0,
+      })
+    : null;
+
   return {
-    progress: {
-      total: habits.length,
-      completed: completedCount,
-      allDone: completedCount === habits.length && habits.length > 0,
-    },
+    progress,
     habits: habitItems,
+    encouragement,
     retroactiveQuota,
     pendingStreakBreaks: pendingStreakBreaks.map((sb) => ({
       id: sb.id,

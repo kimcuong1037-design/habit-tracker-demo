@@ -104,3 +104,19 @@ model StreakBreakEvent {
   @@unique([habitId, breakDate])
   @@index([habitId])
 }
+
+// ──────────────────────────────────
+// DailyEncouragement（AI 每日鼓励缓存）
+// ──────────────────────────────────
+model DailyEncouragement {
+  id      String  @id @default(uuid())
+  date    String
+  message String
+  source  String  // "ai" | "fallback"
+  context String? // JSON snapshot for debugging
+
+  createdAt DateTime @default(now())
+
+  @@unique([date])
+  @@index([date])
+}

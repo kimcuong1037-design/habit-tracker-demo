@@ -44,6 +44,10 @@ export interface TodayResponse {
       allDone: boolean;
     };
     habits: HabitWithStreak[];
+    encouragement: {
+      message: string;
+      source: "ai" | "fallback";
+    } | null;
     retroactiveQuota: {
       month: string;
       used: number;

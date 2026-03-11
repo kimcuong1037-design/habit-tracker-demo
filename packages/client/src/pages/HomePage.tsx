@@ -6,6 +6,7 @@ import ProgressBar from "@/components/ProgressBar.js";
 import HabitCard from "@/components/HabitCard.js";
 import StreakBreakCard from "@/components/StreakBreakCard.js";
 import MilestoneDialog from "@/components/MilestoneDialog.js";
+import EncouragementCard from "@/components/EncouragementCard.js";
 import CreateHabitDialog from "@/components/CreateHabitDialog.js";
 import EditHabitDialog from "@/components/EditHabitDialog.js";
 import DeleteHabitDialog from "@/components/DeleteHabitDialog.js";
@@ -102,6 +103,11 @@ export default function HomePage() {
               total={today.progress.total}
               completed={today.progress.completed}
             />
+
+            {/* AI encouragement */}
+            {today.encouragement && (
+              <EncouragementCard message={today.encouragement.message} />
+            )}
 
             {/* Streak break comfort cards */}
             {today.pendingStreakBreaks.length > 0 && (
