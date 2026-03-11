@@ -40,10 +40,10 @@
 - [x] 功能 7: 连续打卡天数（Streak 计算）+ 里程碑自动创建 + 断裂检测
 - [x] 功能 8: AI 每日鼓励（Claude Haiku 生成个性化鼓励语 + 颜文字）
 
-### Phase 3: 增强功能
-- [ ] 科学习惯养成引导（基于心理学原理）
-- [ ] 选做功能评估与实现
-- [ ] 功能 9: 习惯提醒通知（追加需求 — Web Notification + Service Worker, see DD-014）
+### Phase 3: 增强功能 ✅
+- [x] 科学习惯养成引导（基于心理学原理）— 已嵌入 Phase 2 各功能（Cue、Milestone、AI 鼓励）
+- [x] 选做功能评估与实现 — 周视图（WeekPage + BottomNav）
+- [x] 功能 9: 习惯提醒通知（Web Notification + Service Worker, DD-014）
 
 ### Phase 4: 测试与优化
 - [ ] 单元测试
