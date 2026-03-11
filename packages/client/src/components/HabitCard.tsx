@@ -4,13 +4,21 @@ import type { HabitWithStreak } from "@habit-tracker/shared";
 import { Card, CardContent } from "@/components/ui/card.js";
 import { Checkbox } from "@/components/ui/checkbox.js";
 import { Badge } from "@/components/ui/badge.js";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu.js";
 
 interface HabitCardProps {
   habit: HabitWithStreak;
   onCheckIn: (habitId: string) => Promise<void>;
+  onEdit: (habitId: string) => void;
+  onDelete: (habitId: string) => void;
 }
 
-export default function HabitCard({ habit, onCheckIn }: HabitCardProps) {
+export default function HabitCard({ habit, onCheckIn, onEdit, onDelete }: HabitCardProps) {
   const [optimisticChecked, setOptimisticChecked] = useState(habit.checkedInToday);
   const [loading, setLoading] = useState(false);
 
@@ -68,6 +76,25 @@ export default function HabitCard({ habit, onCheckIn }: HabitCardProps) {
           <span>🔥</span>
           <span className="font-medium tabular-nums">{habit.currentStreak}</span>
         </div>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            className="flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          >
+            ⋯
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => onEdit(habit.id)}>
+              ✏️ 编辑习惯
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => onDelete(habit.id)}
+              className="text-destructive focus:text-destructive"
+            >
+              🗑️ 删除习惯
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </CardContent>
     </Card>
   );

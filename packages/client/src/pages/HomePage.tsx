@@ -5,16 +5,28 @@ import Layout from "@/components/Layout.js";
 import ProgressBar from "@/components/ProgressBar.js";
 import HabitCard from "@/components/HabitCard.js";
 import CreateHabitDialog from "@/components/CreateHabitDialog.js";
+import EditHabitDialog from "@/components/EditHabitDialog.js";
+import DeleteHabitDialog from "@/components/DeleteHabitDialog.js";
 import { Button } from "@/components/ui/button.js";
 import { Card, CardContent } from "@/components/ui/card.js";
 import { useToday } from "@/hooks/useToday.js";
 import { useHabits } from "@/hooks/useHabits.js";
-import { createCheckIn } from "@/api/habits.js";
+import { createCheckIn, deleteHabit } from "@/api/habits.js";
 
 export default function HomePage() {
   const { data: today, loading, refresh: refreshToday } = useToday();
   const { habits, refresh: refreshHabits } = useHabits();
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [editHabitId, setEditHabitId] = useState<string | null>(null);
+  const [deleteHabitId, setDeleteHabitId] = useState<string | null>(null);
+
+  const activeHabits = habits.filter((h) => h.isActive);
+  const editTarget = activeHabits.find((h) => h.id === editHabitId) ?? null;
+  const deleteTarget = activeHabits.find((h) => h.id === deleteHabitId) ?? null;
+
+  const refreshAll = async () => {
+    await Promise.all([refreshHabits(), refreshToday()]);
+  };
 
   const handleCheckIn = async (habitId: string) => {
     await createCheckIn(habitId, { date: dayjs().format("YYYY-MM-DD") });
@@ -22,12 +34,17 @@ export default function HomePage() {
     await refreshToday();
   };
 
-  const handleCreated = async () => {
-    await refreshHabits();
-    await refreshToday();
+  const handleDelete = async () => {
+    if (!deleteHabitId) return;
+    try {
+      await deleteHabit(deleteHabitId);
+      toast.success(`习惯已删除`);
+      setDeleteHabitId(null);
+      await refreshAll();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "删除失败，请重试");
+    }
   };
-
-  const activeHabits = habits.filter((h) => h.isActive);
 
   // Split today items into uncompleted / completed
   const uncompleted = today?.habits.filter((h) => !h.checkedInToday) ?? [];
@@ -56,7 +73,7 @@ export default function HomePage() {
               <p className="text-center text-muted-foreground">
                 还没有习惯？创建你的第一个吧
               </p>
-              <Button size="lg" onClick={() => setDialogOpen(true)}>
+              <Button size="lg" onClick={() => setCreateOpen(true)}>
                 ＋ 创建习惯
               </Button>
             </CardContent>
@@ -76,6 +93,8 @@ export default function HomePage() {
                   key={habit.id}
                   habit={habit}
                   onCheckIn={handleCheckIn}
+                  onEdit={setEditHabitId}
+                  onDelete={setDeleteHabitId}
                 />
               ))}
             </div>
@@ -97,6 +116,8 @@ export default function HomePage() {
                     key={habit.id}
                     habit={habit}
                     onCheckIn={handleCheckIn}
+                    onEdit={setEditHabitId}
+                    onDelete={setDeleteHabitId}
                   />
                 ))}
               </div>
@@ -106,7 +127,7 @@ export default function HomePage() {
             <div className="fixed bottom-6 right-6">
               <Button
                 size="lg"
-                onClick={() => setDialogOpen(true)}
+                onClick={() => setCreateOpen(true)}
                 className="size-12 rounded-full shadow-lg"
               >
                 <span className="text-xl">＋</span>
@@ -117,10 +138,27 @@ export default function HomePage() {
       </div>
 
       <CreateHabitDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        onCreated={handleCreated}
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onCreated={refreshAll}
         existingHabits={activeHabits}
+      />
+
+      {editTarget && (
+        <EditHabitDialog
+          open={!!editHabitId}
+          onOpenChange={(open) => { if (!open) setEditHabitId(null); }}
+          habit={editTarget}
+          onUpdated={refreshAll}
+          existingHabits={activeHabits}
+        />
+      )}
+
+      <DeleteHabitDialog
+        open={!!deleteHabitId}
+        onOpenChange={(open) => { if (!open) setDeleteHabitId(null); }}
+        habitName={deleteTarget?.name ?? ""}
+        onConfirm={handleDelete}
       />
     </Layout>
   );
