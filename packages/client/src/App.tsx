@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router";
-import HomePage from "./pages/HomePage.js";
+import { Toaster } from "@/components/ui/sonner.js";
+import HomePage from "@/pages/HomePage.js";
 
 export default function App() {
   return (
@@ -7,6 +8,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
       </Routes>
+      <Toaster position="bottom-center" />
     </BrowserRouter>
   );
 }
