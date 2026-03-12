@@ -1,10 +1,11 @@
 import { useLocation, useNavigate } from "react-router";
-import { CalendarCheck, LayoutGrid } from "lucide-react";
+import { CalendarCheck, LayoutGrid, Calendar } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 const tabs: { path: string; label: string; icon: LucideIcon }[] = [
   { path: "/home", label: "今日", icon: CalendarCheck },
   { path: "/week", label: "周视图", icon: LayoutGrid },
+  { path: "/month", label: "月视图", icon: Calendar },
 ];
 
 export default function BottomNav() {

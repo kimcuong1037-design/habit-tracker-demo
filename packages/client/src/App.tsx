@@ -5,6 +5,7 @@ import ProtectedRoute from "@/components/ProtectedRoute.js";
 import LandingPage from "@/pages/LandingPage.js";
 import HomePage from "@/pages/HomePage.js";
 import WeekPage from "@/pages/WeekPage.js";
+import MonthPage from "@/pages/MonthPage.js";
 
 export default function App() {
   return (
@@ -25,6 +26,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <WeekPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/month"
+            element={
+              <ProtectedRoute>
+                <MonthPage />
               </ProtectedRoute>
             }
           />

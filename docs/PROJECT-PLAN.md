@@ -44,6 +44,7 @@
 - [x] 科学习惯养成引导（基于心理学原理）— 已嵌入 Phase 2 各功能（Cue、Milestone、AI 鼓励）
 - [x] 选做功能评估与实现 — 周视图（WeekPage + BottomNav）
 - [x] 功能 9: 习惯提醒通知（Web Notification + Service Worker, DD-014）
+- [x] 功能 12: 月视图（MonthPage — GitHub 风格热力图 + 月度统计）
 
 ### Phase 3.5: 用户认证与落地页（追加需求 2026-03-12） ✅
 - [x] 功能 10: 用户注册与登录（DD-015）
