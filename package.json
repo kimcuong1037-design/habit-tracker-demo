@@ -4,8 +4,14 @@
   "scripts": {
     "dev": "pnpm --parallel --filter @habit-tracker/client --filter @habit-tracker/server dev",
     "build": "pnpm --filter @habit-tracker/shared build && pnpm --parallel --filter @habit-tracker/client --filter @habit-tracker/server build",
+    "start": "NODE_ENV=production node packages/server/dist/index.js",
+    "db:migrate": "cd packages/server && npx prisma migrate deploy",
+    "db:seed": "cd packages/server && npx tsx prisma/seed.ts",
     "lint": "eslint packages/",
-    "format": "prettier --write \"packages/*/src/**/*.{ts,tsx}\""
+    "format": "prettier --write \"packages/*/src/**/*.{ts,tsx}\"",
+    "test": "pnpm --parallel -r test",
+    "test:server": "pnpm --filter @habit-tracker/server test",
+    "test:shared": "pnpm --filter @habit-tracker/shared test"
   },
   "type": "module",
   "pnpm": {
