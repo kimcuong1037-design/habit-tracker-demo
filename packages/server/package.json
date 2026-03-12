@@ -5,11 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsup src/index.ts --format esm",
+    "build": "tsup",
     "start": "node dist/index.js",
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "tsx prisma/seed.ts",
-    "prisma:studio": "prisma studio"
+    "prisma:studio": "prisma studio",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -18,17 +20,24 @@
     "@anthropic-ai/sdk": "^0.78.0",
     "@habit-tracker/shared": "workspace:*",
     "@prisma/client": "^6.0.0",
+    "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "dayjs": "^1.11.0",
     "express": "^5.0.0",
+    "jsonwebtoken": "^9.0.3",
     "zod": "^3.24.0"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^3.0.0",
     "@types/cors": "^2.8.0",
     "@types/express": "^5.0.0",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/supertest": "^7.2.0",
     "prisma": "^6.0.0",
+    "supertest": "^7.2.2",
     "tsup": "^8.0.0",
     "tsx": "^4.0.0",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "vitest": "^4.0.18"
   }
 }
