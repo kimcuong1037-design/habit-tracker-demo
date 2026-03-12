@@ -34,4 +34,4 @@ The app helps users build good habits through daily check-ins with scientific ba
 - Daily UX: minimal; milestones: warm + data-rich
 
 ## Current Status
-Phase 0–3 complete. Phase 3.5 (Auth + Landing Page) requirements & design done, ready for implementation.
+All phases complete (0–5). Project delivered. See `docs/RETROSPECTIVE.md` for full retrospective.
