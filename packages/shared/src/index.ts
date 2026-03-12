@@ -7,3 +7,4 @@ export { CueType, MilestoneType, MAX_ACTIVE_HABITS, MAX_RETROACTIVE_PER_MONTH } 
 
 // Schemas
 export { createHabitSchema, updateHabitSchema, createCheckInSchema } from "./schemas/habit.js";
+export { registerSchema, loginSchema } from "./schemas/auth.js";

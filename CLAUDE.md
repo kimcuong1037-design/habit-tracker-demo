@@ -10,6 +10,7 @@ The app helps users build good habits through daily check-ins with scientific ba
 - Design: `docs/design/`
 - Architecture: `docs/architecture/`
 - Project Plan: `docs/PROJECT-PLAN.md`
+- Review Lessons: `docs/architecture/review-lessons.md` (实践经验积累，开发前必读)
 
 ## Tech Stack
 - Frontend: TypeScript + React + Vite + Tailwind CSS
@@ -17,7 +18,7 @@ The app helps users build good habits through daily check-ins with scientific ba
 - Database: SQLite via Prisma ORM
 - API: RESTful
 - Structure: Monorepo (packages/client + packages/server)
-- Auth: Single-user mode (v1), architecture ready for JWT/OAuth expansion
+- Auth: JWT (bcrypt + jsonwebtoken), see DD-015
 
 ## Development Conventions
 - Language: TypeScript (shared across frontend & backend)
@@ -33,4 +34,4 @@ The app helps users build good habits through daily check-ins with scientific ba
 - Daily UX: minimal; milestones: warm + data-rich
 
 ## Current Status
-Phase 0: PRD complete. Ready for UI/UX design and technical architecture.
+Phase 0–3 complete. Phase 3.5 (Auth + Landing Page) requirements & design done, ready for implementation.

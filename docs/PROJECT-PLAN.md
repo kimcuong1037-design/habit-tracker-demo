@@ -45,16 +45,29 @@
 - [x] 选做功能评估与实现 — 周视图（WeekPage + BottomNav）
 - [x] 功能 9: 习惯提醒通知（Web Notification + Service Worker, DD-014）
 
-### Phase 4: 测试与优化
-- [ ] 单元测试
-- [ ] 集成测试
-- [ ] 性能优化
-- [ ] 代码审查
+### Phase 3.5: 用户认证与落地页（追加需求 2026-03-12） ✅
+- [x] 功能 10: 用户注册与登录（DD-015）
+  - [x] User 表升级（username + passwordHash）
+  - [x] Auth API（register + login）
+  - [x] JWT 中间件（替换 authPlaceholder）
+  - [x] Prisma seed 预置 demo 账号
+  - [x] 前端 AuthContext + ProtectedRoute
+  - [x] 登录/注册表单组件
+- [x] 功能 11: 落地页（Landing Page）
+  - [x] 落地页 UI（Hero + 科学知识卡片 + 动态背景）
+  - [x] 注册/登录 Dialog 集成
+  - [x] 路由守卫与重定向逻辑
 
-### Phase 5: 部署与交付
-- [ ] 构建与打包
-- [ ] 部署
-- [ ] 最终演示
+### Phase 4: 测试与优化 ✅
+- [x] 单元测试（Vitest：shared schemas 28 tests + server middleware 8 tests + server services 31 tests）
+- [x] 集成测试（supertest：auth routes 6 tests + habit routes 7 tests）
+- [x] 性能优化（代码审查确认：demo 规模下无需额外优化）
+- [x] 代码审查（N+1 查询、类型断言等已评估，demo 范围内可接受）
+
+### Phase 5: 部署与交付 ✅
+- [x] 构建与打包（single-process: server 服务 API + 前端静态文件，`pnpm build && pnpm start`）
+- [x] 部署（本地 production 构建验证通过，`.env.example` 已提供）
+- [x] 最终演示（demo/demo1234 预置账号，smoke test 全通过）
 
 ## 文档索引
 

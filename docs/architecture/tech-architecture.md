@@ -610,3 +610,120 @@ self.addEventListener("message", (event) => {
 2. **防重复**：每个习惯每天最多一次通知，使用 `Set` + Notification `tag` 双重保障
 3. **优雅降级**：权限未授予或 API 不支持时静默降级，不影响核心功能
 4. **每日重置**：零点或应用重新加载时清空已发送记录
+
+---
+
+## 10. 用户认证架构（追加需求 see DD-015）
+
+### 10.1 架构概览
+
+```
+┌─────────────────────────────────────────────────────┐
+│                     Browser                          │
+│                                                      │
+│  ┌──────────────────────────────────────────────┐   │
+│  │          React SPA                            │   │
+│  │                                               │   │
+│  │  ┌──────────────┐  ┌──────────────────────┐  │   │
+│  │  │ AuthContext   │  │  ProtectedRoute      │  │   │
+│  │  │ (token管理)  │  │  (路由守卫)          │  │   │
+│  │  └──────┬───────┘  └──────────────────────┘  │   │
+│  │         │                                     │   │
+│  │  ┌──────▼─────────────────────────────────┐  │   │
+│  │  │ API Client (自动附带 Bearer token)      │  │   │
+│  │  └────────────────────┬───────────────────┘  │   │
+│  └───────────────────────┼──────────────────────┘   │
+│                           │ Authorization: Bearer <JWT>
+└───────────────────────────┼─────────────────────────┘
+                            │
+┌───────────────────────────┼─────────────────────────┐
+│                    Express Server                     │
+│                                                       │
+│  /api/auth/*  ──→  无需鉴权                          │
+│  /api/*       ──→  JWT 验证中间件 → routes → ...     │
+│                         │                             │
+│                    验证 token                         │
+│                    提取 userId                        │
+│                    注入 req.userId                    │
+│                         │                             │
+│                    ┌────▼────┐                        │
+│                    │ Service │  ← userId 透传，零改动  │
+│                    └─────────┘                        │
+└───────────────────────────────────────────────────────┘
+```
+
+### 10.2 核心模块
+
+| 模块 | 位置 | 职责 |
+|------|------|------|
+| `auth.routes.ts` | `packages/server/src/routes/` | 注册/登录路由，不经过 JWT 中间件 |
+| `auth.service.ts` | `packages/server/src/services/` | 注册（bcrypt hash）、登录（bcrypt compare）、JWT 签发 |
+| `auth.ts` | `packages/server/src/middleware/` | JWT 验证中间件（替换原 `authPlaceholder`） |
+| `AuthContext.tsx` | `packages/client/src/contexts/` | React Context，管理 token 状态和登录/登出方法 |
+| `ProtectedRoute.tsx` | `packages/client/src/components/` | 路由守卫，未登录时重定向到落地页 |
+| `LandingPage.tsx` | `packages/client/src/pages/` | 落地页：科学知识展示 + 注册/登录 Dialog |
+
+### 10.3 前端路由更新
+
+```typescript
+// React Router 路由配置（更新）
+/                    → LandingPage       // 落地页（未登录用户）
+/home                → HomePage          // 今日视图（需登录）← ProtectedRoute
+/create              → CreateHabitPage   // 创建习惯（需登录）
+/edit/:id            → EditHabitPage     // 编辑习惯（需登录）
+/week                → WeekViewPage      // 周视图（需登录）
+```
+
+### 10.4 JWT 中间件（替换 authPlaceholder）
+
+```typescript
+// packages/server/src/middleware/auth.ts（更新）
+import jwt from "jsonwebtoken";
+
+const JWT_SECRET = process.env.JWT_SECRET || "habit-tracker-dev-secret";
+
+export function authenticate(req: Request, res: Response, next: NextFunction) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith("Bearer ")) {
+    return res.status(401).json({
+      error: { code: "UNAUTHORIZED", message: "未提供认证 token" },
+    });
+  }
+
+  try {
+    const token = authHeader.split(" ")[1];
+    const payload = jwt.verify(token, JWT_SECRET) as { userId: string };
+    (req as any).userId = payload.userId;
+    next();
+  } catch {
+    return res.status(401).json({
+      error: { code: "UNAUTHORIZED", message: "token 无效或已过期" },
+    });
+  }
+}
+```
+
+### 10.5 关键设计要点
+
+1. **Service 层零改动**：所有 service 已通过 `userId` 参数隔离数据，认证层变更不影响业务逻辑
+2. **API Client 自动附带 token**：在 `services/api.ts` 的 `request()` 函数中自动从 localStorage 读取 token 并附带到请求头
+3. **401 全局拦截**：API Client 拦截 401 响应，自动清除 token 并跳转落地页
+4. **环境变量**：新增 `JWT_SECRET`（开发环境有默认值，生产环境需配置）
+
+### 10.6 新增依赖
+
+| 包 | 位置 | 用途 |
+|----|------|------|
+| `bcrypt` | server | 密码哈希与验证 |
+| `jsonwebtoken` | server | JWT 签发与验证 |
+| `@types/bcrypt` | server (devDep) | TypeScript 类型 |
+| `@types/jsonwebtoken` | server (devDep) | TypeScript 类型 |
+
+### 10.7 环境变量更新
+
+```bash
+# packages/server/.env（新增）
+JWT_SECRET="your-secret-key-here"     # JWT 签名密钥（生产环境必须配置强密钥）
+```
+
+> `JWT_SECRET` 未配置时使用开发默认值 `"habit-tracker-dev-secret"`，仅用于本地开发。

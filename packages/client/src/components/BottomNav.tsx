@@ -3,7 +3,7 @@ import { CalendarCheck, LayoutGrid } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
 const tabs: { path: string; label: string; icon: LucideIcon }[] = [
-  { path: "/", label: "今日", icon: CalendarCheck },
+  { path: "/home", label: "今日", icon: CalendarCheck },
   { path: "/week", label: "周视图", icon: LayoutGrid },
 ];
 

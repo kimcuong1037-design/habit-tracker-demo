@@ -189,4 +189,18 @@
 
 ---
 
+## DD-015: 用户认证方案 — 本地 JWT Auth（bcrypt + jsonwebtoken）
+
+| 项目 | 内容 |
+|------|------|
+| **日期** | 2026-03-12 |
+| **阶段** | Phase 0 — 追加需求设计 |
+| **背景** | 原始需求为单用户模式，架构通过 `authPlaceholder` 中间件预留了 userId 透传。现需补充用户注册/登录功能，同时新增落地页展示科学知识吸引用户 |
+| **方案** | 本地 JWT 认证：用户名 + 密码注册/登录，bcrypt 哈希密码，jsonwebtoken 签发/验证 JWT。前端新增落地页（Landing Page），在当前页面内切换注册/登录表单 |
+| **备选方案** | ① Google OAuth（需要 Cloud Console 配置 + Client ID/Secret + redirect URI，外部依赖重） ② 硬编码 mock 凭证（不展示真实 auth 模式，面试展示不专业） ③ Magic Link 邮箱登录（需要邮件服务，基础设施过重） |
+| **决策理由** | ① 展示完整 auth 模式（密码哈希、JWT、protected routes）是全栈 demo 的加分项 ② 零外部依赖，clone 即用，评审者无需配置 API Key ③ 现有架构已预留 userId 透传，只需替换 `authPlaceholder` 为 JWT 验证中间件，Service 层零改动 ④ 预置 demo 账号（demo/demo1234）让评审者可直接体验 |
+| **影响范围** | User 表新增 `username` + `passwordHash` 字段、新增 `/api/auth/register` + `/api/auth/login` 端点、`authPlaceholder` 替换为 JWT 中间件、前端新增 Landing Page + Login/Register 表单 + AuthContext + ProtectedRoute |
+
+---
+
 <!-- 新决策请追加在此处，保持编号递增 -->

@@ -1,19 +1,22 @@
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  // 创建默认用户（v1 单用户模式）
+  // 创建预置 demo 账号（see DD-015）
+  const passwordHash = await bcrypt.hash("demo1234", 10);
   await prisma.user.upsert({
-    where: { id: "default-user" },
+    where: { username: "demo" },
     update: {},
     create: {
-      id: "default-user",
-      email: null,
+      id: "demo-user-id",
+      username: "demo",
+      passwordHash,
     },
   });
 
-  console.log("Seed completed: default user created.");
+  console.log("Seed completed: demo user created (demo / demo1234).");
 }
 
 main()

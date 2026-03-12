@@ -8,15 +8,18 @@ datasource db {
 }
 
 // ──────────────────────────────────
-// User（v1 预留，单用户模式）
+// User（用户认证，see DD-015）
 // ──────────────────────────────────
 model User {
-  id        String   @id @default(uuid())
-  email     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(uuid())
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   habits Habit[]
+
+  @@index([username])
 }
 
 // ──────────────────────────────────

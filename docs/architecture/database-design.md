@@ -442,3 +442,76 @@ async function seedDefaultUser() {
 | 无 sortOrder 字段 | 新增 | 支持列表自定义排序 |
 | 无鼓励语缓存 | 新增 DailyEncouragement 表 | AI 鼓励语每天缓存一条，避免重复调用 API |
 | 无提醒相关字段 | Habit 表增加 `reminderTime` 字段 | 追加需求：支持每日定时提醒（see DD-014） |
+| User 表仅预留 id + email | 增加 `username` + `passwordHash` 字段，移除 `email` | 追加需求：本地 JWT 认证（see DD-015） |
+
+---
+
+> **以下为后续追加的数据库变更（2026-03-12），不修改上述原始设计。**
+
+## 7. User 表升级：从预留到实际认证（see DD-015）
+
+### 7.1 变更说明
+
+User 表从 v1 的"预留占位"升级为实际的认证用户表。
+
+**变更前（v1 预留）：**
+```prisma
+model User {
+  id        String   @id @default(uuid())
+  email     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  habits    Habit[]
+}
+```
+
+**变更后：**
+```prisma
+model User {
+  id           String   @id @default(uuid())
+  username     String   @unique                // 用户名，3-20 字符，唯一
+  passwordHash String                          // bcrypt 哈希后的密码
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  habits       Habit[]
+
+  @@index([username])
+}
+```
+
+### 7.2 字段说明
+
+| 字段 | 说明 | 校验规则 |
+|------|------|----------|
+| `username` | 用户名，登录凭证 | 必填，3-20 字符，`/^[a-zA-Z0-9_]+$/`，唯一 |
+| `passwordHash` | bcrypt 哈希后的密码 | 由服务端生成，不直接接受明文 |
+
+**移除字段：** `email` — v1 不使用邮箱，避免空字段混淆。
+
+### 7.3 索引
+
+| 索引 | 字段 | 用途 |
+|------|------|------|
+| 唯一索引 | `username` | 登录查询 + 注册唯一性检查 |
+
+### 7.4 数据初始化（更新）
+
+```typescript
+// Prisma seed：预置 demo 账号
+import bcrypt from "bcrypt";
+
+async function seedDemoUser() {
+  const passwordHash = await bcrypt.hash("demo1234", 10);
+  await prisma.user.upsert({
+    where: { username: "demo" },
+    update: {},
+    create: {
+      id: "demo-user-id",
+      username: "demo",
+      passwordHash,
+    },
+  });
+}
+```
+
+**注意：** 原有的 `default-user` 不再需要。新系统通过 JWT 中间件从 token 中提取 userId，不再硬编码默认用户。

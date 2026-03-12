@@ -191,6 +191,11 @@ export default function CreateHabitDialog({
           </div>
         ) : (
           <div className="space-y-5">
+            {/* Guidance text */}
+            <p className="text-xs leading-relaxed text-muted-foreground">
+              研究表明，把新习惯和一个已有的日常行为绑定在一起，成功率会大幅提升。选择一个触发线索，让大脑在特定场景下自动提醒你行动。
+            </p>
+
             {/* Section A: Trigger */}
             <div className="space-y-3">
               <button
@@ -215,6 +220,11 @@ export default function CreateHabitDialog({
                 </span>
                 A. 触发线索
               </button>
+              {cueType === CueType.TRIGGER && (
+                <p className="pl-6 text-xs text-muted-foreground">
+                  选一个日常时刻作为提醒信号，例如「刷牙后」→ 做新习惯
+                </p>
+              )}
 
               {cueType === CueType.TRIGGER && (
                 <div className="space-y-2 pl-6">
@@ -282,9 +292,14 @@ export default function CreateHabitDialog({
                 </span>
                 B. 习惯叠加
               </button>
-              {existingHabits.length === 0 && (
+              {cueType === CueType.STACKING && (
                 <p className="pl-6 text-xs text-muted-foreground">
-                  习惯叠加可将新习惯绑定到已有习惯之后执行，帮助你更自然地养成新习惯。创建第一个习惯后即可使用。
+                  把新习惯接在一个已养成的习惯之后，借助惯性更容易坚持
+                </p>
+              )}
+              {existingHabits.length === 0 && cueType !== CueType.STACKING && (
+                <p className="pl-6 text-xs text-muted-foreground">
+                  创建第一个习惯后即可使用习惯叠加
                 </p>
               )}
 

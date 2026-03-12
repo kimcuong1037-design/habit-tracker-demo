@@ -591,6 +591,155 @@ const reminderTimeSchema = z
 | 关闭安慰消息 | `POST /api/streak-breaks/:id/dismiss` | |
 | 周视图 | `GET /api/habits/:id/check-ins?from=...&to=...` | 按习惯查询一周数据 |
 | 设置/修改提醒时间 | `POST /api/habits` 或 `PUT /api/habits/:id` | `reminderTime` 字段（追加需求） |
+| 落地页访问 | — | 前端路由，无 API 调用 |
+| 注册 | `POST /api/auth/register` | 追加需求 |
+| 登录 | `POST /api/auth/login` | 追加需求 |
+
+---
+
+> **以下为后续追加的 API（2026-03-12），不修改上述原始 API 定义。**
+
+## 追加：用户认证 API（see DD-015）
+
+### API 总览（追加）
+
+| # | 方法 | 路径 | 说明 | 鉴权 |
+|---|------|------|------|------|
+| 12 | `POST` | `/api/auth/register` | 用户注册 | 无需 |
+| 13 | `POST` | `/api/auth/login` | 用户登录 | 无需 |
+
+### 12. 用户注册
+
+`POST /api/auth/register`
+
+#### 请求
+
+```typescript
+{
+  "username": "roger",            // 必填，3-20 字符，字母/数字/下划线
+  "password": "mypassword"        // 必填，6-50 字符
+}
+```
+
+#### 响应
+
+**`201 Created`**
+
+```typescript
+{
+  "data": {
+    "user": {
+      "id": "uuid-xxx",
+      "username": "roger",
+      "createdAt": "2026-03-12T08:00:00.000Z"
+    },
+    "token": "eyJhbGciOiJIUzI1NiIs..."  // JWT，有效期 7 天
+  }
+}
+```
+
+#### 错误
+
+| 状态码 | 错误码 | 触发条件 |
+|--------|--------|----------|
+| 400 | `VALIDATION_ERROR` | 用户名/密码格式不合法 |
+| 409 | `USERNAME_TAKEN` | 用户名已被使用 |
+
+---
+
+### 13. 用户登录
+
+`POST /api/auth/login`
+
+#### 请求
+
+```typescript
+{
+  "username": "roger",
+  "password": "mypassword"
+}
+```
+
+#### 响应
+
+**`200 OK`**
+
+```typescript
+{
+  "data": {
+    "user": {
+      "id": "uuid-xxx",
+      "username": "roger",
+      "createdAt": "2026-03-12T08:00:00.000Z"
+    },
+    "token": "eyJhbGciOiJIUzI1NiIs..."
+  }
+}
+```
+
+#### 错误
+
+| 状态码 | 错误码 | 触发条件 |
+|--------|--------|----------|
+| 400 | `VALIDATION_ERROR` | 字段缺失或格式错误 |
+| 401 | `INVALID_CREDENTIALS` | 用户名不存在或密码错误（不区分） |
+
+---
+
+### 鉴权机制变更
+
+**请求头格式：**
+
+```
+Authorization: Bearer <JWT token>
+```
+
+**受保护路由：** 所有 `/api/*` 路由（`/api/auth/*` 除外）均需携带有效 JWT。
+
+**JWT Payload：**
+
+```typescript
+{
+  "userId": "uuid-xxx",
+  "username": "roger",
+  "iat": 1741766400,
+  "exp": 1742371200          // 7 天后过期
+}
+```
+
+**错误响应（鉴权失败）：**
+
+| 状态码 | 错误码 | 触发条件 |
+|--------|--------|----------|
+| 401 | `UNAUTHORIZED` | 未携带 token、token 无效或已过期 |
+
+### Zod Schema 扩展
+
+在 `packages/shared/src/schemas/` 中新增：
+
+```typescript
+// auth.ts
+import { z } from "zod";
+
+export const registerSchema = z.object({
+  username: z
+    .string()
+    .min(3, "用户名至少 3 个字符")
+    .max(20, "用户名最多 20 个字符")
+    .regex(/^[a-zA-Z0-9_]+$/, "用户名只能包含字母、数字和下划线"),
+  password: z
+    .string()
+    .min(6, "密码至少 6 个字符")
+    .max(50, "密码最多 50 个字符"),
+});
+
+export const loginSchema = z.object({
+  username: z.string().min(1, "请输入用户名"),
+  password: z.string().min(1, "请输入密码"),
+});
+```
+
+---
 
 ## 附录：设计决策引用
 
@@ -600,3 +749,4 @@ const reminderTimeSchema = z
 - 里程碑快照数据在创建时固化：see DD-005
 - AI 鼓励语使用 Anthropic SDK 单次调用，不引入 Agent SDK：see DD-013
 - 提醒通知使用 Web Notification API，客户端调度，无需服务端推送：see DD-014
+- 用户认证使用本地 JWT（bcrypt + jsonwebtoken），替换 authPlaceholder：see DD-015
